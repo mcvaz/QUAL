@@ -1,0 +1,145 @@
+---
+title: "Preliminary analyses - Species"
+author: "M. Vaz"
+date: "February 3, 2017"
+output: html_document
+---
+
+# Basic stats
+```{r,echo=FALSE}
+
+raw2 = read.csv("raw2.csv",header=T,as.is=T)
+paste("number of species sampled: ",length(unique(raw2$sp))) # number of trees sampled
+
+# correct crown major and minor diameters
+tmp = cbind(raw2$cd1/100,raw2$cd2/100)
+raw2$cd1c = apply(tmp,1,max)
+raw2$cd2c = apply(tmp,1,min)
+
+# estimates crown density
+raw2$cDens = raw2$dL/raw2$cTh
+
+# crown shape (roundness)
+raw2$cSh = raw2$cd2c/raw2$cd1c
+
+# calculate means for each species
+mm = aggregate(cbind(cmax,tL,bM1c,sDens,RcTh,RcPos,tL,taper,HGE,rgrBc,LIEc,LUEc,cDens,cSh,Hmax)~sp,raw2,mean,na.rm=T,na.action=NULL)
+head(mm)
+
+```
+
+# Architecture: crown and stem
+```{r,echo=FALSE}
+
+plot(mm$sDens,mm$tL,xlab="Stem density (g cm^3)",ylab="Light intercepted (% m^2)",main="")
+plot(mm$HGE,mm$tL,xlab="Height gain efficiency (cm g^-1)",ylab="Light intercepted (% m^2)",main="",xlim=c(0,5))
+plot(mm$HGE,mm$RcPos,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
+plot(mm$HGE,mm$rgrBc,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
+plot(mm$LIEc,mm$LUEc,log="xy",xlab="Light interception efficiency",ylab="Light use efficiency")
+
+#plot(mm[,-1])
+
+```
+
+# Hmax
+```{r,echo=FALSE}
+
+plot(mm$Hmax,mm$sDens)
+plot(mm$Hmax,mm$HGE,ylim=c(0,4))
+plot(mm$Hmax,mm$LIEc)
+plot(mm$Hmax,mm$LUEc,log="y")
+
+```
+
+# PCA
+```{r,echo=FALSE}
+
+bv = c("sDens","RcTh","RcPos","RcPos","tL","HGE","rgrBc","LIEc","LUEc","cDens","cSh","Hmax")
+dd = na.omit(scale(mm[,bv]))
+
+pca = prcomp(dd[,1:(ncol(dd)-1)])
+summary(pca)
+ss = predict(pca)
+
+plot(pca$sdev^2*100/sum(pca$sdev^2),type="b",xlab="PC",ylab="Variance explained (%)")
+
+source("biplot.R")
+biplot(pca,1:2,7,.1)
+biplot(pca,3:4,5,.1)
+
+plot(na.omit(dd[,"Hmax"]),ss[,1])
+plot(na.omit(dd[,"Hmax"]),ss[,2])
+plot(na.omit(dd[,"Hmax"]),ss[,3])
+plot(na.omit(dd[,"Hmax"]),ss[,4])
+
+```
+
+# Partial regression
+```{r,echo=FALSE}
+
+tmp = subset(mm,select=c("cmax","tL","bM1c","rgrBc"))
+tmp$cmax = tmp$cmax/100+1.4
+tmp = na.omit(tmp)
+tmp = tmp[which(tmp$rgrBc>=0),]
+
+# HGE
+plot(y=tmp$cmax,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Height (m)")
+plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Height (m)")
+hb = lm(log(tmp$cmax)~log(tmp$bM1c))
+abline(hb,col=2)
+summary(hb)
+text(-1.7,1.8,expression(paste(R^2,"=0.38")))
+
+# LIE
+plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
+plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Estimated light interception")
+lb = lm(log(tmp$tL)~log(tmp$bM1c))
+abline(lb,col=2)
+summary(lb)
+text(-1.7,5.5,expression(paste(R^2,"=0.28")))
+
+# HGE x LIE
+plot(x=hb$residuals,lb$residuals,xlab="HGE",ylab="LIE")
+hlb = lm(lb$residuals~hb$residuals)
+#abline(hlb,col=2)
+summary(hlb)
+
+# LUE
+plot(x=tmp$tL,tmp$rgrBc,ylab="RGR",xlab="Estimated light interception")
+plot(x=log(tmp$tL),log(tmp$rgrBc),ylab="log RGR",xlab="log Estimated light interception")
+gl = lm(log(tmp$rgrBc)~log(tmp$tL))
+abline(gl,col=2)
+summary(gl)
+text(1.4,-1,expression(paste(R^2,"=0.07")))
+
+# LIExLUE
+plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
+ll = lm(gl$residuals~lb$residuals)
+summary(ll)
+
+# LIE, HGE, LUE x Hmax
+tmp2 = subset(mm,select=c("cmax","tL","bM1c","rgrBc","Hmax"))
+tmp2$cmax = tmp2$cmax/100+1.4
+tmp2 = na.omit(tmp2)
+tmp2 = tmp2[which(tmp2$rgrBc>=0),]
+hb2 = lm(log(tmp2$cmax)~log(tmp2$bM1c))
+lb2 = lm(log(tmp2$tL)~log(tmp2$bM1c))
+gl2 = lm(log(tmp2$rgrBc)~log(tmp2$tL))
+
+plot(tmp2$Hmax,hb2$residuals,xlab="Hmax",ylab="HGE")
+summary(lm(hb2$residuals~tmp2$Hmax))
+
+plot(tmp2$Hmax,lb2$residuals,xlab="Hmax",ylab="LIE")
+summary(lm(lb2$residuals~tmp2$Hmax))
+text(33,1.2,expression(paste(R^2,"=0.04")))
+abline(lm(lb2$residuals~tmp2$Hmax),col=2)
+#abline(h=0,lty=3)
+
+plot(tmp2$Hmax,gl2$residuals,xlab="Hmax",ylab="LUE")
+summary(lm(gl2$residuals~tmp2$Hmax))
+
+```
+
+
+
+

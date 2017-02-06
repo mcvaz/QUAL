@@ -1,0 +1,191 @@
+---
+title: "Preliminary analyses - Individuals"
+author: "M. Vaz"
+date: "February 3, 2017"
+output: html_document
+---
+
+# Basic stats
+```{r,echo=FALSE}
+
+raw2 = read.csv("raw2.csv",header=T,as.is=T)
+paste("number of trees sampled: ",nrow(raw2)) # number of trees sampled
+
+# correct crown major and minor diameters
+tmp = cbind(raw2$cd1/100,raw2$cd2/100)
+raw2$cd1c = apply(tmp,1,max)
+raw2$cd2c = apply(tmp,1,min)
+
+# estimates crown density
+raw2$cDens = raw2$dL/raw2$cTh
+
+# crown shape (roundness)
+raw2$cSh = raw2$cd2c/raw2$cd1c
+
+```
+
+# Crown height and position
+```{r,echo=FALSE}
+
+hist(raw2$cmax/100+1.4,main="Crown",xlab="Top height (m)")
+hist(raw2$cmean/100+1.4,main="Crown",xlab="Mean height (m)")
+hist(raw2$cmin/100+1.4,main="Crown",xlab="Bottom height (m)")
+
+hist(raw2$cTh,main="Crown",xlab="Thickness (m)")
+hist(raw2$RcTh,main="Crown",xlab="Relative thickness (%)")
+hist(raw2$RcPos,main="Crown",xlab="Relative position (%)")
+
+plot(raw2$cmax/100+1.4,raw2$cmin/100+1.4,xlab="Top height (m)",ylab="Mean/Bottom height (m)",main="Crown");abline(a=0,b=1)
+points(raw2$cmax/100+1.4,raw2$cmean/100+1.4,col=grey(0.5,0.5),pch=16)
+
+plot(raw2$cmax/100+1.4,raw2$cTh,xlab="Top height (m)",ylab="Thickness (m)",main="Crown")
+plot(raw2$cmax/100+1.4,raw2$RcTh,xlab="Top height (m)",ylab="Relative thickness (m)",main="Crown")
+plot(raw2$cmax/100+1.4,raw2$RcPos,xlab="Top height (m)",ylab="Relative position (%)",main="Crown")
+
+#plot(raw2$cTh,raw2$RcTh,xlab="Thickness (m)",ylab="Relative thickness (%)",main="Crown")
+#plot(raw2$cmean/100+1.4,raw2$RcPos,xlab="Mean height (m)",ylab="Relative position (%)",main="Crown")
+
+```
+
+# Crown shape, projected area and volume
+```{r,echo=FALSE}
+
+hist(raw2$cd1c,main="Crown",xlab="Longest diameter (m)")
+hist(raw2$cd2c,main="Crown",xlab="Longest perpendicular diameter (m)")
+hist(raw2$cSh,main="Crown",xlab="Roundness")
+
+plot(raw2$cd1c,raw2$cd2c,xlab="Major diameter (m)",ylab="Minor diameter (m)",main="Crown shape");abline(a=0,b=1)
+
+hist(raw2$cArea,main="Crown",xlab="Area (m^2)")
+
+plot(raw2$cmax/100+1.4,raw2$cArea,main="Crown",xlab="Top height (m)",ylab="Area (m^2)")
+plot(raw2$cTh,raw2$cArea,main="Crown",xlab="Thickness (m)",ylab="Area (m^2)",log="y")
+
+#hist(raw2$cVol,main="Crown",xlab="Cylinder volume (cm^3)")
+hist(raw2$cVol2,main="Crown",xlab="Double cone volume (cm^3)")
+
+#plot(raw2$cVol,raw2$cVol2,xlab="Cylinder volume (cm^3)",ylab="Double cone volume (cm^3)",main="Crown")
+plot(raw2$cSh,raw2$cVol2,xlab="Roundness",ylab="Volume (cm^3)",main="Crown")
+plot(raw2$cmax/100+1.4,raw2$cVol2,xlab="Top height (m)",ylab="Volume (cm^3)",main="Crown")
+
+```
+
+# Light interception
+```{r,echo=FALSE}
+
+hist(raw2$dL,main="Crown",xlab="light attenuation (%)")
+
+hist(raw2$cDens,main="Crown",xlab="Density (light attenuation (%) m^-1)")
+
+plot(raw2$cTh,raw2$dL,xlab="Thickness (m)",ylab="Light attenuation (%)",main="Crown density")
+
+plot(raw2$cArea,raw2$dL,xlab="Area (m^2)",ylab="Light attenuation (%)",main="Crown",log="x")
+#plot(raw2$cArea,raw2$cDens,xlab="Area (m^2)",ylab="Density (light attenuation (%) m^-1)",main="Crown",log="xy")
+plot(raw2$cmax/100+1.4,raw2$dL,xlab="Top height (m)",ylab="Light attenuation (%)",main="Crown",log="x")
+#plot(raw2$cSh,raw2$dL,xlab="Roundness",ylab="Light attenuation (%)",main="Crown")
+plot(raw2$cVol2,raw2$dL,xlab="Volume (cm^3)",ylab="Light attenuation (%)",main="Crown",log="x")
+
+```
+
+# Light conditions
+```{r,echo=F}
+
+hist(raw2$cii,main="",xlab="Crown ilumination index")
+
+plot(raw2$cii,raw2$dL,xlab="Crown ilumination index",ylab="Light interception (%)")
+plot(raw2$cii,raw2$cVol2,xlab="Crown ilumination index",ylab="Crown volume (m^3)")
+plot(raw2$cii,raw2$RcTh,xlab="Crown ilumination index",ylab="Relative crown thickness (%)")
+plot(raw2$cii,raw2$RcPos,xlab="Crown ilumination index",ylab="Relative crown position (%)")
+plot(raw2$cii,raw2$cArea,xlab="Crown ilumination index",ylab="Crown area (m^2)")
+plot(raw2$cii,raw2$cSh,xlab="Crown ilumination index",ylab="Crown roundness")
+plot(raw2$cii,raw2$taper,xlab="Crown ilumination index",ylab="Relative crown thickness (%)")
+
+
+```
+
+# Stem height, tapering, volume, density and mass
+```{r,echo=FALSE}
+
+hist(raw2$sh/100+1.4,main="Stem",xlab="Height (m)")
+hist(raw2$taper,main="Stem",xlab="Tapering (mm m^-1)")
+
+plot(raw2$sh/100+1.4,abs(raw2$taper),main="Stem",xlab="Height (m)",ylab="Tapering (mm m^-1)",log="xy")
+
+hist(raw2$sVol,main="Stem",xlab="Volume (mm^3)")
+hist(raw2$sDens,main="Stem",xlab="Estimated density (g cm^3)")
+hist(raw2$sMass,main="Stem",xlab="Estimated mass (g)")
+
+plot(raw2$sDens,raw2$dL,main="Stem",xlab="Density (g cm^-3)",ylab="Intercepted light (%)")
+
+```
+
+# PCA
+```{r,echo=FALSE}
+
+bv = c("sh","cmax","cmean","cmin","cd1","cd2","sDens","taper","dL")
+dd = na.omit(scale(raw2[,bv]))
+
+pca = prcomp(dd)
+summary(pca)
+ss = predict(pca)
+
+plot(pca$sdev^2*100/sum(pca$sdev^2),type="b",xlab="PC",ylab="Variance explained (%)")
+
+source("biplot.R")
+biplot(pca,1:2,7,.1)
+biplot(pca,3:4,2,.1)
+
+```
+
+# Partial regression
+```{r, echo=F}
+
+tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc"))
+tmp$cmax = tmp$cmax/100+1.4
+tmp = na.omit(tmp)
+tmp = tmp[which(tmp$rgrBc>=0),]
+
+# HGE
+plot(y=tmp$cmax,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Height (m)")
+plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Height (m)")
+hb = lm(log(tmp$cmax)~log(tmp$bM1c))
+abline(hb,col=2)
+summary(hb)
+text(-1.7,2,expression(paste(R^2,"=0.46")))
+
+# LIE
+plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
+plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Estimated light interception")
+lb = lm(log(tmp$tL)~log(tmp$bM1c))
+abline(lb,col=2)
+summary(lb)
+text(-1.7,6,expression(paste(R^2,"=0.22")))
+
+# LIE x HGE
+plot(x=hb$residuals,lb$residuals,xlab="HGE",ylab="LIE")
+hlb = lm(lb$residuals~hb$residuals)
+#abline(hlb,col=2)
+summary(hlb)
+
+# LUE
+plot(log(tmp$rgrBc),x=log(tmp$tL),xlab="Light intercepted",ylab="RGR")
+gl = lm(log(tmp$rgrBc)~log(tmp$tL))
+abline(gl,col=2)
+summary(gl)
+text(.5,-1,expression(paste(R^2,"=0.03")))
+
+# LUE x LIE
+plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
+ll = lm(gl$residuals~lb$residuals)
+summary(ll)
+
+# Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
+
+```
+
+
+
+
+
+
+
