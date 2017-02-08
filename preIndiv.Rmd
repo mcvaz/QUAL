@@ -112,18 +112,21 @@ hist(raw2$taper,main="Stem",xlab="Tapering (mm m^-1)")
 plot(raw2$sh/100+1.4,abs(raw2$taper),main="Stem",xlab="Height (m)",ylab="Tapering (mm m^-1)",log="xy")
 
 hist(raw2$sVol,main="Stem",xlab="Volume (mm^3)")
-hist(raw2$sDens,main="Stem",xlab="Estimated density (g cm^3)")
+hist(raw2$sDens,main="Stem",xlab="Estimated density (g cm^-3)")
 hist(raw2$sMass,main="Stem",xlab="Estimated mass (g)")
 
 plot(raw2$sDens,raw2$dL,main="Stem",xlab="Density (g cm^-3)",ylab="Intercepted light (%)")
+plot(x=raw2$sDens,abs(raw2$taper),main="Stem",xlab="Density (g cm^-3)",ylab="Tapering (mm m^-1)",log="y")
+plot(y=raw2$dL,abs(raw2$taper),main="Stem",ylab="Intercepted light (%)",xlab="Tapering (mm m^-1)",log="x")
 
 ```
 
 # PCA
 ```{r,echo=FALSE}
 
-bv = c("sh","cmax","cmean","cmin","cd1","cd2","sDens","taper","dL")
-dd = na.omit(scale(raw2[,bv]))
+bv = c("sh","cmax","cmean","cmin","cd1","cd2","sDens","taper","dL","cii")
+dd0 = na.omit(raw2[,bv])
+dd = scale(dd0[,-ncol(dd0)])
 
 pca = prcomp(dd)
 summary(pca)
@@ -134,6 +137,11 @@ plot(pca$sdev^2*100/sum(pca$sdev^2),type="b",xlab="PC",ylab="Variance explained 
 source("biplot.R")
 biplot(pca,1:2,7,.1)
 biplot(pca,3:4,2,.1)
+
+
+# Plot PCs against light conditions
+plot(ss[,1],x=dd0$cii)
+plot(ss[,2],x=dd0$cii)
 
 ```
 
