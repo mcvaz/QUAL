@@ -159,7 +159,7 @@ plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log H
 hb = lm(log(tmp$cmax)~log(tmp$bM1c))
 abline(hb,col=2)
 summary(hb)
-text(-1.7,2,expression(paste(R^2,"=0.46")))
+text(-1.7,2,expression(paste(R^2,"=0.46")),col=2)
 
 # LIE
 plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
@@ -167,10 +167,10 @@ plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Est
 lb = lm(log(tmp$tL)~log(tmp$bM1c))
 abline(lb,col=2)
 summary(lb)
-text(-1.7,6,expression(paste(R^2,"=0.22")))
+text(-1.7,6,expression(paste(R^2,"=0.22")),col=2)
 
 # LIE x HGE
-plot(x=hb$residuals,lb$residuals,xlab="HGE",ylab="LIE")
+plot(x=hb$residuals,lb$residuals,xlab="Height-biomass residuals",ylab="Light-biomass residuals")
 hlb = lm(lb$residuals~hb$residuals)
 #abline(hlb,col=2)
 summary(hlb)

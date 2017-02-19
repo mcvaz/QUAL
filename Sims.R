@@ -1,8 +1,6 @@
 ### Use actual distributions of initial biomass, biomass increment, and light interception
 
-
-
-n = 30
+n = 100
 cols = grey(.5,.5)
 m0=rnorm(n,100,20)
 hist(m0)
@@ -24,11 +22,11 @@ hist(log(lie))
 #mod = lm(lue~lie)
 #summary(mod)
 #abline(mod,col=2)
-plot(log(lue)~log(lie),col=cols,pch=16)
+plot(log(lue)~log(lie),xlab="log(LIE)",ylab="log(LUE)",col=cols,pch=16,main="Simulation")
 modlog = lm(log(lue)~log(lie))
 summary(modlog)
 abline(modlog,col=2)
-
+text(-.3,0,expression(paste(R^2,"= 0.19***")),col=2)
 
 
 ## SIM2
@@ -41,5 +39,6 @@ plot(xx,yy)
 plot(xx/zz,yy/zz,log="x")
 xz = lm(xx~zz)
 yz = lm(yy~zz)
-plot(xz$residuals,yz$residuals)
+plot(xz$residuals,yz$residuals,main="Simulation (residuals)",xlab="Light-size residuals",ylab="Growth-size residuals")
 summary(lm(xz$residuals~yz$residuals))
+text(5,200,expression(paste(R^2,"= 0")),col=2)

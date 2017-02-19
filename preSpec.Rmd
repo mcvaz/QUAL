@@ -32,10 +32,19 @@ head(mm)
 ```{r,echo=FALSE}
 
 plot(mm$sDens,mm$tL,xlab="Stem density (g cm^3)",ylab="Light intercepted (% m^2)",main="")
+mod5 = lm(mm$tL~mm$sDens)
+summary(mod5)
+
 plot(mm$HGE,mm$tL,xlab="Height gain efficiency (cm g^-1)",ylab="Light intercepted (% m^2)",main="",xlim=c(0,5))
 plot(mm$HGE,mm$RcPos,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
 plot(mm$HGE,mm$rgrBc,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
-plot(mm$LIEc,mm$LUEc,log="xy",xlab="Light interception efficiency",ylab="Light use efficiency")
+plot(log(mm$LIEc),log(mm$LUEc),xlab="log(LIE)",ylab="log(LUE)")
+mod6 = lm(log(mm$LUEc)~log(mm$LIEc))
+summary(mod6)
+text(1,7.5,expression(paste(R^2,"= 0.52***")),col=2)
+abline(mod6,col=2)
+
+
 
 #plot(mm[,-1])
 
@@ -88,7 +97,7 @@ plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log H
 hb = lm(log(tmp$cmax)~log(tmp$bM1c))
 abline(hb,col=2)
 summary(hb)
-text(-1.7,1.8,expression(paste(R^2,"=0.38")))
+text(-1.7,1.8,expression(paste(R^2,"=0.38***")),col=2)
 
 # LIE
 plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
@@ -96,7 +105,7 @@ plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Est
 lb = lm(log(tmp$tL)~log(tmp$bM1c))
 abline(lb,col=2)
 summary(lb)
-text(-1.7,5.5,expression(paste(R^2,"=0.28")))
+text(-1.7,5.5,expression(paste(R^2,"=0.28***")),col=2)
 
 # HGE x LIE
 plot(x=hb$residuals,lb$residuals,xlab="HGE",ylab="LIE")
@@ -110,10 +119,10 @@ plot(x=log(tmp$tL),log(tmp$rgrBc),ylab="log RGR",xlab="log Estimated light inter
 gl = lm(log(tmp$rgrBc)~log(tmp$tL))
 abline(gl,col=2)
 summary(gl)
-text(1.4,-1,expression(paste(R^2,"=0.07")))
+text(1.4,-1,expression(paste(R^2,"=0.07***")),col=2)
 
 # LIExLUE
-plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
+plot(lb$residuals,y=gl$residuals,xlab="light-biomass residuals",ylab="growth-light residuals")
 ll = lm(gl$residuals~lb$residuals)
 summary(ll)
 
