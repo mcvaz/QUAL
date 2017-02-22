@@ -2,9 +2,9 @@
 
 n = 100
 cols = grey(.5,.5)
-m0=rnorm(n,100,20)
+m0 = rnorm(n,100,20)
 hist(m0)
-m1=m0+rgamma(n,shape=1,scale=10)
+m1 = m0+rgamma(n,shape=1,scale=10)
 #m1=m0+rnorm(n,10,3)
 hist(m1)
 hist(m1-m0)
