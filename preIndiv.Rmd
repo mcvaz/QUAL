@@ -148,10 +148,11 @@ plot(ss[,2],x=dd0$cii)
 # Partial regression
 ```{r, echo=F}
 
-tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc"))
+tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc","bM0c","LUEc","LIEc"))
 tmp$cmax = tmp$cmax/100+1.4
 tmp = na.omit(tmp)
 tmp = tmp[which(tmp$rgrBc>=0),]
+nrow(tmp)
 
 # HGE
 plot(y=tmp$cmax,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Height (m)")
@@ -182,10 +183,40 @@ abline(gl,col=2)
 summary(gl)
 text(.5,-1,expression(paste(R^2,"=0.03")))
 
-# LUE x LIE
+
+# LUE x LIE - SMA
+library(smatr)
+source("regr.plot.R")
+mod = sma(log(tmp$LUEc)~log(tmp$LIEc))
+regr.plot(mod)
+subset(raw2,LIEc<1,select="sp")
+subset(raw2,LIEc>exp(6),select="sp")
+
+# LUE x LIE - Residuals
 plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
 ll = lm(gl$residuals~lb$residuals)
 summary(ll)
+
+# LUE x LIE - Permutation test
+obs = cor(log(tmp$LUEc),log(tmp$LIEc))
+cor.test(log(tmp$LUEc),log(tmp$LIEc))
+
+res = numeric()
+for(i in 1:9999){
+  tmptL = sample(tmp$tL)
+  res[i] = cor(log((tmp$bM1c-tmp$bM0c)/tmptL),log(tmptL/tmp$bM1c))
+}
+res = c(res,obs)
+pp = sum(res<obs)/10000
+
+hist(res,xlab="Pearson's R",main="Permutation test")
+abline(v=quantile(res,.05),col=2,lty=3)
+arrows(obs,100,obs,0,col=4,length=.1)
+legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
+
+
+
+
 
 # Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
 

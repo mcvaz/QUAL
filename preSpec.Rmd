@@ -23,7 +23,7 @@ raw2$cDens = raw2$dL/raw2$cTh
 raw2$cSh = raw2$cd2c/raw2$cd1c
 
 # calculate means for each species
-mm = aggregate(cbind(cmax,tL,bM1c,sDens,RcTh,RcPos,tL,taper,HGE,rgrBc,LIEc,LUEc,cDens,cSh,Hmax)~sp,raw2,mean,na.rm=T,na.action=NULL)
+mm = aggregate(cbind(cmax,tL,bM1c,bM0c,sDens,RcTh,RcPos,tL,taper,HGE,rgrBc,LIEc,LUEc,cDens,cSh,Hmax)~sp,raw2,mean,na.rm=T,na.action=NULL)
 head(mm)
 
 ```
@@ -86,7 +86,7 @@ plot(na.omit(dd[,"Hmax"]),ss[,4])
 # Partial regression
 ```{r,echo=FALSE}
 
-tmp = subset(mm,select=c("cmax","tL","bM1c","rgrBc"))
+tmp = subset(mm,LUEc>0,select=c("cmax","tL","bM1c","rgrBc","bM0c"))
 tmp$cmax = tmp$cmax/100+1.4
 tmp = na.omit(tmp)
 tmp = tmp[which(tmp$rgrBc>=0),]
@@ -146,6 +146,24 @@ abline(lm(lb2$residuals~tmp2$Hmax),col=2)
 
 plot(tmp2$Hmax,gl2$residuals,xlab="Hmax",ylab="LUE")
 summary(lm(gl2$residuals~tmp2$Hmax))
+
+
+# LUE x LIE - Permutation test
+obs = cor(log((tmp$bM1c-tmp$bM0c)/tmp$tL),log(tmp$tL/tmp$bM1c))
+cor.test(log((tmp$bM1c-tmp$bM0c)/tmp$tL),log(tmp$tL/tmp$bM1c))
+
+res = numeric()
+for(i in 1:9999){
+  tmptL = sample(tmp$tL)
+  res[i] = cor(log((tmp$bM1c-tmp$bM0c)/tmptL),log(tmptL/tmp$bM1c))
+}
+res = c(res,obs)
+pp = sum(res<obs)/10000
+
+hist(res,xlab="Pearson's R",main="Permutation test")
+abline(v=quantile(res,.05),col=2,lty=3)
+arrows(obs,500,obs,0,col=4,length=.1)
+legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
 ```
 
