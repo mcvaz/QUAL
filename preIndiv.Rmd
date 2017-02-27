@@ -216,7 +216,7 @@ legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
 
 
-
+# Fit SMA for each species
 
 # Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
 

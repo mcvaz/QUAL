@@ -53,10 +53,42 @@ abline(mod6,col=2)
 # Hmax
 ```{r,echo=FALSE}
 
-plot(mm$Hmax,mm$sDens)
-plot(mm$Hmax,mm$HGE,ylim=c(0,4))
-plot(mm$Hmax,mm$LIEc)
-plot(mm$Hmax,mm$LUEc,log="y")
+# Hmax x RGR
+plot(mm$Hmax,mm$rgrBc,xlab="Hmax",ylab="RGR")
+mod = lm(mm$rgrBc~mm$Hmax)
+summary(mod)
+
+# Hmax x sDens
+plot(mm$Hmax,mm$sDens,xlab="Hmax",ylab="Stem density")
+mod = lm(mm$sDens~mm$Hmax)
+summary(mod)
+
+# Hmax x HGE
+plot(mm$Hmax,mm$HGE,xlab="Hmax",ylab="HGE")
+mod = lm(mm$HGE~mm$Hmax)
+summary(mod)
+#plot(mod) # outlier
+subset(raw2,HGE>6,select="sp")
+
+plot(mm$Hmax,mm$HGE,xlab="Hmax",ylab="HGE",ylim=c(0,4))
+mod = lm(subset(mm,HGE<6,select=HGE,drop=T)~subset(mm,HGE<6,select=Hmax,drop=T))
+summary(mod) # without outlier
+abline(mod,col=2)
+text(9,4,expression(paste(R^2," = 0.04*")),col=2)
+
+
+# Hmax x LIE
+plot(mm$Hmax,mm$LIEc,xlab="Hmax",ylab="LIE")
+mod = lm(mm$LIEc~mm$Hmax)
+summary(mod)
+abline(mod,col=2)
+text(30,170,expression(paste(R^2," = 0.06*")),col=2)
+
+# Hmax x LUE
+plot(mm$Hmax[-c(1,2,55,84,101,104)],mm$LUEc[-c(1,2,55,84,101,104)],xlab="Hmax",ylab="LUE")
+mod = lm(mm$LUEc[-c(1,2,55,84,101,104)]~mm$Hmax[-c(1,2,55,84,101,104)])
+summary(mod)
+#plot(mod)
 
 ```
 
@@ -126,8 +158,8 @@ plot(lb$residuals,y=gl$residuals,xlab="light-biomass residuals",ylab="growth-lig
 ll = lm(gl$residuals~lb$residuals)
 summary(ll)
 
-# LIE, HGE, LUE x Hmax
-tmp2 = subset(mm,select=c("cmax","tL","bM1c","rgrBc","Hmax"))
+# LIE, HGE, LUE x Hmax - Residuals
+tmp2 = subset(mm,select=c("cmax","tL","bM1c","rgrBc","Hmax","LIEc","LUEc"))
 tmp2$cmax = tmp2$cmax/100+1.4
 tmp2 = na.omit(tmp2)
 tmp2 = tmp2[which(tmp2$rgrBc>=0),]
@@ -140,9 +172,8 @@ summary(lm(hb2$residuals~tmp2$Hmax))
 
 plot(tmp2$Hmax,lb2$residuals,xlab="Hmax",ylab="LIE")
 summary(lm(lb2$residuals~tmp2$Hmax))
-text(33,1.2,expression(paste(R^2,"=0.04")))
+text(33,1.2,expression(paste(R^2," = 0.04")),col=2)
 abline(lm(lb2$residuals~tmp2$Hmax),col=2)
-#abline(h=0,lty=3)
 
 plot(tmp2$Hmax,gl2$residuals,xlab="Hmax",ylab="LUE")
 summary(lm(gl2$residuals~tmp2$Hmax))
@@ -164,6 +195,14 @@ hist(res,xlab="Pearson's R",main="Permutation test")
 abline(v=quantile(res,.05),col=2,lty=3)
 arrows(obs,500,obs,0,col=4,length=.1)
 legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
+
+
+# LUE x LIE - SMA
+
+
+
+# LUE x LIE - PCA
+
 
 ```
 
