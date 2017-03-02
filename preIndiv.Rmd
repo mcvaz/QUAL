@@ -148,11 +148,12 @@ plot(ss[,2],x=dd0$cii)
 # Partial regression
 ```{r, echo=F}
 
-tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc","bM0c","LUEc","LIEc"))
+tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc","bM0c","LUEc","LIEc","sp"))
 tmp$cmax = tmp$cmax/100+1.4
 tmp = na.omit(tmp)
 tmp = tmp[which(tmp$rgrBc>=0),]
 nrow(tmp)
+head(tmp)
 
 # HGE
 plot(y=tmp$cmax,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Height (m)")
@@ -215,13 +216,73 @@ arrows(obs,100,obs,0,col=4,length=.1)
 legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
 
-
 # Fit SMA for each species
+plot(y=log(tmp$LUEc),x=log(tmp$LIEc),pch=16,col=grey(.5,alpha=.5))
+mod = sma(log(tmp$LUEc)~log(tmp$LIEc))
+
+sps = unique(tmp$sp)
+sps = sps[which(table(tmp$sp)>2)]
+sps = sps[sps!=" " & sps!="NI NI" & sps!="Manilkara ???" & sps!="Lecythis " & sps!="Manilkara " & sps!="Pouteria NI" & sps!="Pouteria " & sps!="Pouteria sp."]
+sps
+
+for(i in sps){
+  tmp2 = subset(tmp,sp==i)
+  mod2 = sma(log(tmp2$LUEc)~log(tmp2$LIEc))
+  abline(mod2,col=grey(.5,.5))
+  }
+abline(mod,lwd=2)
+
 
 # Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
 
 ```
 
+# Diagnostic plots
+```{r}
+
+# above and below crown light x height for each individual
+tmp = subset(raw2,select=c("cmax","il1","il2","il3","il4","il5","tl1","tl2","tl3","tl4","tl5"))
+tmp$cmax = tmp$cmax/100+1.4
+tmp = tmp[order(tmp$cmax),]
+tmp$above = apply(tmp[,c("il1","il2","il3","il4","il5")],1,mean)
+tmp$below = apply(tmp[,c("tl1","tl2","tl3","tl4","tl5")],1,mean)
+tmp$ext = tmp$below*100/tmp$above
+tmp = na.omit(tmp)
+tmp = subset(tmp,above>0 & below>0)
+head(tmp)
+
+plot(tmp$cmax,ylab="Height (m)")
+plot(tmp$above,ylab="Incident light")
+plot(tmp$below,ylab="Transmitted light")
+plot(tmp$ext,ylab="Light transmitted (%)")
+
+rr = range(tmp[,c("il1","il2","il3","il4","il5","tl1","tl2","tl3","tl4","tl5")],na.rm=T)
+plot(tmp$cmax,ylab="Light",type="n",ylim=rr)
+#abline(v=1:nrow(tmp),col=grey(0.1,alpha=.5),lty=3)
+for(i in 1:nrow(tmp)){
+  points(x=rep(i,5),y=tmp[i,c("il1","il2","il3","il4","il5")],col=rainbow(1,alpha=.5),pch=16)
+  points(x=rep(i,5),y=tmp[i,c("tl1","tl2","tl3","tl4","tl5")],col=rainbow(1,start=0.5,alpha=.5),pch=16)
+  }
+
+
+# crown thickness/position x plant height
+tmp2 = subset(raw2,select=c("cmax","cmean","cmin"))
+tmp2 = na.omit(tmp2)
+tmp2$cmax = tmp2$cmax/100+1.4
+tmp2$cmean = tmp2$cmean/100+1.4
+tmp2$cmin = tmp2$cmin/100+1.4
+tmp2 = tmp2[order(tmp2$cmax),]
+head(tmp2)
+
+rr2 = range(tmp2[,c("cmax","cmean","cmin")])
+plot(tmp2$cmax,ylab="Height (m)",type="n",ylim=rr2)
+for(i in 1:nrow(tmp2)){
+  segments(i,tmp2[i,"cmin"],i,tmp2[i,"cmax"],col=grey(0.5,alpha=0.5))
+  points(i,tmp2[i,"cmean"],pch=16,cex=.5,col=grey(0.5,alpha=0.5))
+  }
+
+
+```
 
 
 
