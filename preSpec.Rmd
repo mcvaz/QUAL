@@ -187,7 +187,7 @@ res = numeric()
 for(i in 1:9999){
   tmptL = sample(tmp$tL)
   res[i] = cor(log((tmp$bM1c-tmp$bM0c)/tmptL),log(tmptL/tmp$bM1c))
-}
+  }
 res = c(res,obs)
 pp = sum(res<obs)/10000
 

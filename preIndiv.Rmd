@@ -24,6 +24,45 @@ raw2$cSh = raw2$cd2c/raw2$cd1c
 
 ```
 
+# Biomass and growth
+```{r}
+
+hist(raw2$bM0n)
+hist(raw2$bM1n)
+hist(raw2$bM0c)
+hist(raw2$bM1c)
+
+plot(c(raw2$bM0n,raw2$bM1n),xlim=c(0,3),type="n",log="y",ylab="Biomass (kg)",xaxt="n",xlab="Census",main="Without wood density")
+for(i in 1:nrow(raw2)){points(x=c(.5,2.5),y=c(raw2$bM0n[i],raw2$bM1n[i]),type="b",pch=16,col=grey(0.5,0.5))}
+tmp = subset(raw2,bM0n>bM1n)
+for(i in 1:nrow(tmp)){points(x=c(.5,2.5),y=c(tmp$bM0n[i],tmp$bM1n[i]),type="b",pch=16,col=rainbow(1,alpha=.2))}
+nrow(tmp)
+
+plot(c(raw2$bM0c,raw2$bM1c),xlim=c(0,3),type="n",log="y",ylab="Biomass (kg)",xaxt="n",xlab="Census",main="With wood density")
+for(i in 1:nrow(raw2)){points(x=c(.5,2.5),y=c(raw2$bM0c[i],raw2$bM1c[i]),type="b",pch=16,col=grey(0.5,0.5))}
+tmp = subset(raw2,bM0c>bM1c)
+for(i in 1:nrow(tmp)){points(x=c(.5,2.5),y=c(tmp$bM0c[i],tmp$bM1c[i]),type="b",pch=16,col=rainbow(1,alpha=.2))}
+nrow(tmp)
+
+hist(raw2$rgrD);sum(raw2$rgrD<0,na.rm=T)
+hist(raw2$rgrBn);sum(raw2$rgrBn<0,na.rm=T)
+hist(raw2$rgrBc);sum(raw2$rgrBc<0,na.rm=T)
+
+plot(log(raw2$bM0c),log(raw2$bM1c))
+mod = lm(log(raw2$bM1c)~log(raw2$bM0c))
+summary(mod)
+text(1,-1.5,expression(paste(R^2,"=0.55***")),col=2)
+abline(mod,col=2)
+
+plot(log(raw2$bM0c),log(raw2$rgrBc))
+mod = lm(log(raw2$rgrBc)~log(raw2$bM0c))
+summary(mod)
+text(1.5,-4,expression(paste(R^2,"=0.27***")),col=2)
+abline(mod,col=2)
+
+
+```
+
 # Crown height and position
 ```{r,echo=FALSE}
 

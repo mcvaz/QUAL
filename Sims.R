@@ -1,4 +1,5 @@
-### Use actual distributions of initial biomass, biomass increment, and light interception
+### Simulations to help to decide on the test and statistic to use
+# Still need to use actual distributions of initial biomass, biomass increment, and light interception
 
 ## SIM1 - Stadardized major axis regression
 source("regr.plot.R")
@@ -37,7 +38,7 @@ summary(lm(xz$residuals~yz$residuals))
 text(5,200,expression(paste(R^2,"= 0")),col=2)
 
 
-## SIM3 - Permutation test
+## SIM3 - Permutation tests
 m0 = rnorm(100,100,20)
 m1 = m0+rgamma(100,shape=1,scale=10)
 ll = rnorm(100,50,5)  
@@ -45,11 +46,31 @@ lue = (m1-m0)/ll
 lie = ll/m1
 obs = cor(log(lue),log(lie))
 
+# Restrictive null model 
+#(keep relationship between absolute growth and final biomass constant 
+# while randomizing light interception with respect to these two)
 res = numeric()
 for(i in 1:9999){
   tmpll = sample(ll)
   res[i] = cor(log((m1-m0)/tmpll),log(tmpll/m1))
-}
+  }
+res = c(res,obs)
+#pp = sum(res<obs)/10000 # unicaudal
+res<quantile(res,.975)|res>quantile(res,.025)
+
+hist(res,xlab="Pearson's R",main="Permutation test")
+abline(v=quantile(res,c(.975,.025)),col=2,lty=3)
+arrows(obs,100,obs,0,col=4,length=.1)
+legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
+
+# Unconstrained null model
+# (randomize all three variables)
+res = numeric()
+for(i in 1:9999){
+  tmpll = sample(ll)
+  tmpDm = sample(m1-m0)
+  res[i] = cor(log(tmpDm/tmpll),log(tmpll/m1))
+  }
 res = c(res,obs)
 pp = sum(res<obs)/10000
 
