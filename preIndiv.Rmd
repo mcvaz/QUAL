@@ -22,44 +22,78 @@ raw2$cDens = raw2$dL/raw2$cTh
 # crown shape (roundness)
 raw2$cSh = raw2$cd2c/raw2$cd1c
 
+# RGR
+raw2$rgrD = log((raw2$dbh/1000)/(raw2$dbh0/10))/8
+raw2$rgrBn = log((raw2$bM1n)/(raw2$bM0n))/8
+raw2$rgrBc = log((raw2$bM1c)/(raw2$bM0c))/8
+  
+
 ```
 
 # Biomass and growth
 ```{r}
 
-hist(raw2$bM0n)
-hist(raw2$bM1n)
-hist(raw2$bM0c)
-hist(raw2$bM1c)
+# Biomass estimates distributions
+hist(raw2$bM0n,main="Without wood density",xlab="Biomass (kg)")
+hist(raw2$bM1n,main="Without wood density",xlab="Biomass (kg)")
+hist(raw2$bM0c,main="With wood density",xlab="Biomass (kg)")
+hist(raw2$bM1c,main="With wood density",xlab="Biomass (kg)")
 
+# Biomass estimated with vs. without stem density for both censuses
+plot(raw2$bM0c~raw2$bM0n,log="xy",main="Allometries (w/ vs. w/o WD)",xlab="Biomass estimated without WD (kg)",ylab="Biomass estimated with WD (kg)")
+plot(raw2$bM1c~raw2$bM1n,log="xy",main="Allometries (w/ vs. w/o WD)",xlab="Biomass estimated without WD (kg)",ylab="Biomass estimated with WD (kg)")
+
+# Biomass increment (without stem density)
 plot(c(raw2$bM0n,raw2$bM1n),xlim=c(0,3),type="n",log="y",ylab="Biomass (kg)",xaxt="n",xlab="Census",main="Without wood density")
 for(i in 1:nrow(raw2)){points(x=c(.5,2.5),y=c(raw2$bM0n[i],raw2$bM1n[i]),type="b",pch=16,col=grey(0.5,0.5))}
 tmp = subset(raw2,bM0n>bM1n)
 for(i in 1:nrow(tmp)){points(x=c(.5,2.5),y=c(tmp$bM0n[i],tmp$bM1n[i]),type="b",pch=16,col=rainbow(1,alpha=.2))}
 nrow(tmp)
 
+# Biomass increment (with stem density)
 plot(c(raw2$bM0c,raw2$bM1c),xlim=c(0,3),type="n",log="y",ylab="Biomass (kg)",xaxt="n",xlab="Census",main="With wood density")
 for(i in 1:nrow(raw2)){points(x=c(.5,2.5),y=c(raw2$bM0c[i],raw2$bM1c[i]),type="b",pch=16,col=grey(0.5,0.5))}
 tmp = subset(raw2,bM0c>bM1c)
 for(i in 1:nrow(tmp)){points(x=c(.5,2.5),y=c(tmp$bM0c[i],tmp$bM1c[i]),type="b",pch=16,col=rainbow(1,alpha=.2))}
 nrow(tmp)
 
-hist(raw2$rgrD);sum(raw2$rgrD<0,na.rm=T)
-hist(raw2$rgrBn);sum(raw2$rgrBn<0,na.rm=T)
-hist(raw2$rgrBc);sum(raw2$rgrBc<0,na.rm=T)
+# Absolute growth
+hist(raw2$dbh/1000-raw2$dbh0/10,main="Absolute growth",xlab="DBH1 - DBH0")
+hist(raw2$bM1n-raw2$bM0n,main="Absolute growth",xlab="Biomass1-Biomass0 (without WD)",xlim=c(-2,5),nclass=30)
+hist(raw2$bM1c-raw2$bM0c,main="Absolute growth",xlab="Biomass1-Biomass0 (with WD)",xlim=c(-2,4),nclass=30)
 
-plot(log(raw2$bM0c),log(raw2$bM1c))
+# Relative growth rates -> still need to differentiate time intervals
+hist(raw2$rgrD,main="RGR (DBH only)",xlab="RGR");sum(raw2$rgrD<0,na.rm=T)
+hist(raw2$rgrBn,main="RGR (biomass without stem density)",xlab="RGR");sum(raw2$rgrBn<0,na.rm=T)
+hist(raw2$rgrBc,main="RGR (biomass with stem density)",xlab="RGR");sum(raw2$rgrBc<0,na.rm=T)
+
+# Correlation between intial and final sizes
+plot(log(raw2$bM0c),log(raw2$bM1c),main="WD included",xlab="log(Initial biomass)",ylab="log(Final bioamss)")
 mod = lm(log(raw2$bM1c)~log(raw2$bM0c))
 summary(mod)
-text(1,-1.5,expression(paste(R^2,"=0.55***")),col=2)
+text(1,-1.5,expression(paste(R^2,"=0.61***")),col=2)
 abline(mod,col=2)
 
-plot(log(raw2$bM0c),log(raw2$rgrBc))
+# Initial size vs. RGR
+plot(log(raw2$bM0c),log(raw2$rgrBc),xlab="log(Initial biomass)",main="WD included",ylab="RGR")
 mod = lm(log(raw2$rgrBc)~log(raw2$bM0c))
 summary(mod)
-text(1.5,-4,expression(paste(R^2,"=0.27***")),col=2)
+text(1.5,-8,expression(paste(R^2,"=0.07***")),col=2)
 abline(mod,col=2)
 
+# Initial size vs. absolute growth
+plot(log(raw2$bM0c),log(raw2$bM1c-raw2$bM0c),xlab="log(Initial biomass)",main="WD included",ylab="log(Biomass1-biomass0)")
+mod = lm(log(raw2$bM1c-raw2$bM0c)~log(raw2$bM0c))
+summary(mod)
+text(1.5,-8,expression(paste(R^2,"=0.01***")),col=2)
+abline(mod,col=2)
+
+# Final size vs. absolute growth
+plot(log(raw2$bM1c),log(raw2$bM1c-raw2$bM0c),xlab="log(Final biomass)",main="WD included",ylab="log(Biomass1-biomass0)")
+mod = lm(log(raw2$bM1c-raw2$bM0c)~log(raw2$bM1c))
+summary(mod)
+text(1.5,-8,expression(paste(R^2,"=0.53***")),col=2)
+abline(mod,col=2)
 
 ```
 
@@ -78,7 +112,7 @@ plot(raw2$cmax/100+1.4,raw2$cmin/100+1.4,xlab="Top height (m)",ylab="Mean/Bottom
 points(raw2$cmax/100+1.4,raw2$cmean/100+1.4,col=grey(0.5,0.5),pch=16)
 
 plot(raw2$cmax/100+1.4,raw2$cTh,xlab="Top height (m)",ylab="Thickness (m)",main="Crown")
-plot(raw2$cmax/100+1.4,raw2$RcTh,xlab="Top height (m)",ylab="Relative thickness (m)",main="Crown")
+plot(raw2$cmax/100+1.4,raw2$RcTh,xlab="Top height (m)",ylab="Relative thickness (%)",main="Crown")
 plot(raw2$cmax/100+1.4,raw2$RcPos,xlab="Top height (m)",ylab="Relative position (%)",main="Crown")
 
 #plot(raw2$cTh,raw2$RcTh,xlab="Thickness (m)",ylab="Relative thickness (%)",main="Crown")
@@ -97,15 +131,19 @@ plot(raw2$cd1c,raw2$cd2c,xlab="Major diameter (m)",ylab="Minor diameter (m)",mai
 
 hist(raw2$cArea,main="Crown",xlab="Area (m^2)")
 
-plot(raw2$cmax/100+1.4,raw2$cArea,main="Crown",xlab="Top height (m)",ylab="Area (m^2)")
+plot(raw2$cmax/100+1.4,raw2$cArea,main="Crown",xlab="Top height (m)",ylab="Area (m^2)",log="y")
 plot(raw2$cTh,raw2$cArea,main="Crown",xlab="Thickness (m)",ylab="Area (m^2)",log="y")
+
+# Crown projected area vs. biomass
+plot(x=raw2$bM1c,raw2$cArea,main="Crown",xlab="Biomass (kg)",ylab="Area (m^2)",log="xy")
 
 #hist(raw2$cVol,main="Crown",xlab="Cylinder volume (cm^3)")
 hist(raw2$cVol2,main="Crown",xlab="Double cone volume (cm^3)")
 
 #plot(raw2$cVol,raw2$cVol2,xlab="Cylinder volume (cm^3)",ylab="Double cone volume (cm^3)",main="Crown")
 plot(raw2$cSh,raw2$cVol2,xlab="Roundness",ylab="Volume (cm^3)",main="Crown")
-plot(raw2$cmax/100+1.4,raw2$cVol2,xlab="Top height (m)",ylab="Volume (cm^3)",main="Crown")
+plot(raw2$cmax/100+1.4,raw2$cVol2,xlab="Top height (m)",ylab="Volume (cm^3)",main="Crown",log="y")
+plot(raw2$bM1c,raw2$cVol2,xlab="Biomass (kg)",ylab="Volume (cm^3)",main="Crown",log="xy")
 
 ```
 
@@ -113,11 +151,9 @@ plot(raw2$cmax/100+1.4,raw2$cVol2,xlab="Top height (m)",ylab="Volume (cm^3)",mai
 ```{r,echo=FALSE}
 
 hist(raw2$dL,main="Crown",xlab="light attenuation (%)")
-
 hist(raw2$cDens,main="Crown",xlab="Density (light attenuation (%) m^-1)")
 
 plot(raw2$cTh,raw2$dL,xlab="Thickness (m)",ylab="Light attenuation (%)",main="Crown density")
-
 plot(raw2$cArea,raw2$dL,xlab="Area (m^2)",ylab="Light attenuation (%)",main="Crown",log="x")
 #plot(raw2$cArea,raw2$cDens,xlab="Area (m^2)",ylab="Density (light attenuation (%) m^-1)",main="Crown",log="xy")
 plot(raw2$cmax/100+1.4,raw2$dL,xlab="Top height (m)",ylab="Light attenuation (%)",main="Crown",log="x")
@@ -132,12 +168,24 @@ plot(raw2$cVol2,raw2$dL,xlab="Volume (cm^3)",ylab="Light attenuation (%)",main="
 hist(raw2$cii,main="",xlab="Crown ilumination index")
 
 plot(raw2$cii,raw2$dL,xlab="Crown ilumination index",ylab="Light interception (%)")
+
 plot(raw2$cii,raw2$cVol2,xlab="Crown ilumination index",ylab="Crown volume (m^3)")
+
 plot(raw2$cii,raw2$RcTh,xlab="Crown ilumination index",ylab="Relative crown thickness (%)")
+
 plot(raw2$cii,raw2$RcPos,xlab="Crown ilumination index",ylab="Relative crown position (%)")
+
 plot(raw2$cii,raw2$cArea,xlab="Crown ilumination index",ylab="Crown area (m^2)")
+
 plot(raw2$cii,raw2$cSh,xlab="Crown ilumination index",ylab="Crown roundness")
-plot(raw2$cii,raw2$taper,xlab="Crown ilumination index",ylab="Relative crown thickness (%)")
+
+plot(raw2$cii,raw2$taper,xlab="Crown ilumination index",ylab="Stem taper")
+
+plot(raw2$cii,raw2$LIEc,xlab="Crown ilumination index",ylab="LIE",ylim=c(0,250));points(x=seq(1,3.5,.5),y=tapply(raw2$LIEc,as.character(raw2$cii),median,na.rm=T),col=2,type="b")
+
+plot(raw2$cii,raw2$LUEc,xlab="Crown ilumination index",ylab="LUE",ylim=c(1,650),log="y");points(x=seq(1,3.5,.5),y=tapply(raw2$LUEc,as.character(raw2$cii),median,na.rm=T),col=2,type="b")
+
+plot(raw2$cii,raw2$HGE,xlab="Crown ilumination index",ylab="HGE");points(x=seq(1,3.5,.5),y=tapply(raw2$HGE,as.character(raw2$cii),median,na.rm=T),col=2,type="b")
 
 
 ```
@@ -148,14 +196,14 @@ plot(raw2$cii,raw2$taper,xlab="Crown ilumination index",ylab="Relative crown thi
 hist(raw2$sh/100+1.4,main="Stem",xlab="Height (m)")
 hist(raw2$taper,main="Stem",xlab="Tapering (mm m^-1)")
 
-plot(raw2$sh/100+1.4,abs(raw2$taper),main="Stem",xlab="Height (m)",ylab="Tapering (mm m^-1)",log="xy")
+plot(raw2$sh/100+1.4,abs(raw2$taper),main="Stem",xlab="Stem height (m)",ylab="Tapering (mm m^-1)",log="xy")
 
-hist(raw2$sVol,main="Stem",xlab="Volume (mm^3)")
-hist(raw2$sDens,main="Stem",xlab="Estimated density (g cm^-3)")
-hist(raw2$sMass,main="Stem",xlab="Estimated mass (g)")
+hist(raw2$sVol,main="Stem",xlab="Stem volume (mm^3)")
+hist(raw2$sDens,main="Stem",xlab="Estimated stem density (g cm^-3)")
+hist(raw2$sMass,main="Stem",xlab="Estimated stem mass (g)")
 
-plot(raw2$sDens,raw2$dL,main="Stem",xlab="Density (g cm^-3)",ylab="Intercepted light (%)")
-plot(x=raw2$sDens,abs(raw2$taper),main="Stem",xlab="Density (g cm^-3)",ylab="Tapering (mm m^-1)",log="y")
+plot(raw2$sDens,raw2$dL,main="Stem",xlab="Stem density (g cm^-3)",ylab="Intercepted light (%)")
+plot(x=raw2$sDens,abs(raw2$taper),main="Stem",xlab="Stem density (g cm^-3)",ylab="Tapering (mm m^-1)",log="y")
 plot(y=raw2$dL,abs(raw2$taper),main="Stem",ylab="Intercepted light (%)",xlab="Tapering (mm m^-1)",log="x")
 
 ```
@@ -179,15 +227,17 @@ biplot(pca,3:4,2,.1)
 
 
 # Plot PCs against light conditions
-plot(ss[,1],x=dd0$cii)
-plot(ss[,2],x=dd0$cii)
+plot(ss[,1],x=dd0$cii,ylab="PC1",xlab="Crown illumination index")
+plot(ss[,2],x=dd0$cii,ylab="PC2",xlab="Crown illumination index")
+
+#FIX: plot(ss[,1],x=dd0$bM1c,ylab="PC1",xlab="Biomass (kg)")
 
 ```
 
-# Partial regression
+# Partial regression (OLS)
 ```{r, echo=F}
 
-tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc","bM0c","LUEc","LIEc","sp"))
+tmp = subset(raw2,select=c("cmax","tL","bM1c","rgrBc","bM0c","LUEc","LIEc","sp","cArea"))
 tmp$cmax = tmp$cmax/100+1.4
 tmp = na.omit(tmp)
 tmp = tmp[which(tmp$rgrBc>=0),]
@@ -200,7 +250,7 @@ plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log H
 hb = lm(log(tmp$cmax)~log(tmp$bM1c))
 abline(hb,col=2)
 summary(hb)
-text(-1.7,2,expression(paste(R^2,"=0.46")),col=2)
+text(-1.7,2,expression(paste(R^2,"=0.61***")),col=2)
 
 # LIE
 plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
@@ -208,23 +258,59 @@ plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Est
 lb = lm(log(tmp$tL)~log(tmp$bM1c))
 abline(lb,col=2)
 summary(lb)
-text(-1.7,6,expression(paste(R^2,"=0.22")),col=2)
+text(-1.7,6,expression(paste(R^2,"=0.27***")),col=2)
+#plot(lb)
 
 # LIE x HGE
-plot(x=hb$residuals,lb$residuals,xlab="Height-biomass residuals",ylab="Light-biomass residuals")
+plot(x=hb$residuals,lb$residuals,xlab="Height-biomass residuals",ylab="Light-biomass residuals",main="LIE x HGE")
 hlb = lm(lb$residuals~hb$residuals)
-#abline(hlb,col=2)
+abline(hlb,col=2)
 summary(hlb)
+text(.4,-4,expression(paste(R^2,"=0.01*")),col=2)
+#plot(hlb)
 
 # LUE
 plot(log(tmp$rgrBc),x=log(tmp$tL),xlab="Light intercepted",ylab="RGR")
 gl = lm(log(tmp$rgrBc)~log(tmp$tL))
 abline(gl,col=2)
 summary(gl)
-text(.5,-1,expression(paste(R^2,"=0.03")))
+text(.5,-1,expression(paste(R^2,"=0.13***")),col=2)
+
+# LUE x HGE - Residuals
+plot(x=hb$residuals,gl$residuals,xlab="Height-biomass residuals",ylab="Light-growth residuals",main="LUE x HGE")
+hgl = lm(gl$residuals~hb$residuals)
+#abline(hgl,col=2)
+summary(hgl)
+
+# LUE x LIE - Residuals
+plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
+ll = lm(gl$residuals~lb$residuals)
+summary(ll)
+#plot(ll)
+
+# Forage area efficiency (FAE)
+ab = lm(log(tmp$cArea)~log(tmp$bM1c))
+summary(ab)
+plot(log(raw2$cArea),x=log(raw2$bM1c),xlab="log(Crown projected area)",ylab="log(Biomass)")
+abline(ab,col=2)
+text(1,-1,expression(paste(R^2,"=0.45***")),col=2)
+
+# FAE x HGE
+ahb = lm(ab$residuals~hb$residuals)
+summary(ahb)
+plot(hb$residuals,ab$residuals,xlab="HGE",ylab="FAE")
+abline(ahb,col=2)
+text(.4,-1,expression(paste(R^2,"=0.02**")),col=2)
 
 
-# LUE x LIE - SMA
+# Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
+# Also create new traits, ex: cArea/Biomass -> then make a canonical correlation analysis with adult size
+
+```
+
+# Standardized major axis regression
+```{r}
+# LUE x LIE
 library(smatr)
 source("regr.plot.R")
 mod = sma(log(tmp$LUEc)~log(tmp$LIEc))
@@ -232,10 +318,55 @@ regr.plot(mod)
 subset(raw2,LIEc<1,select="sp")
 subset(raw2,LIEc>exp(6),select="sp")
 
-# LUE x LIE - Residuals
-plot(lb$residuals,y=gl$residuals,xlab="LIE",ylab="LUE")
-ll = lm(gl$residuals~lb$residuals)
-summary(ll)
+# Fit SMA for each species
+sps = unique(tmp$sp)
+sps = sps[which(table(tmp$sp)>2)]
+sps = sps[sps!=" " & sps!="NI NI" & sps!="Manilkara ???" & sps!="Lecythis " & sps!="Manilkara " & sps!="Pouteria NI" & sps!="Pouteria " & sps!="Pouteria sp."]
+sps
+
+plot(y=log(tmp$LUEc),x=log(tmp$LIEc),pch=16,col=grey(.5,alpha=.5),xlab="log(LIE)",ylab="log(LUE)")
+mod = sma(log(tmp$LUEc)~log(tmp$LIEc))
+res = data.frame(sp=sps,slp=rep(NA,length(sps)),int=NA)
+for(i in 1:length(sps)){
+  sptmp = res[i,"sp"]
+  tmp2 = subset(tmp,sp==sptmp)
+  mod2 = sma(log(tmp2$LUEc)~log(tmp2$LIEc))
+  abline(mod2,col=grey(.5,.5))
+  res[i,c("slp","int")] = mod2$groupsummary[,c("Slope","Int")]
+  }
+abline(mod,lwd=2,lty=3) # fit for all individuals
+abline(b=mean(res$slp),a=mean(res$int),col=2,lwd=2) # average regression line
+
+```
+
+# SMA on residuals
+```{r}
+
+# LIE x LUE
+mod = sma(lb$residuals~gl$residuals)
+regr.plot(mod)
+
+# LIE x HGE
+mod = sma(lb$residuals~hb$residuals)
+regr.plot(mod)
+
+# FAE x HGE
+mod = sma(ab$residuals~hb$residuals)
+regr.plot(mod)
+
+# LUE x HGE
+mod = sma(ll$residuals~hb$residuals)
+regr.plot(mod)
+
+# LUE x FAE
+mod = sma(ll$residuals~ab$residuals)
+regr.plot(mod)
+
+```
+
+
+# Permutation tests
+```{r}
 
 # LUE x LIE - Permutation test
 obs = cor(log(tmp$LUEc),log(tmp$LIEc))
@@ -245,7 +376,7 @@ res = numeric()
 for(i in 1:9999){
   tmptL = sample(tmp$tL)
   res[i] = cor(log((tmp$bM1c-tmp$bM0c)/tmptL),log(tmptL/tmp$bM1c))
-}
+  }
 res = c(res,obs)
 pp = sum(res<obs)/10000
 
@@ -254,27 +385,8 @@ abline(v=quantile(res,.05),col=2,lty=3)
 arrows(obs,100,obs,0,col=4,length=.1)
 legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
-
-# Fit SMA for each species
-plot(y=log(tmp$LUEc),x=log(tmp$LIEc),pch=16,col=grey(.5,alpha=.5))
-mod = sma(log(tmp$LUEc)~log(tmp$LIEc))
-
-sps = unique(tmp$sp)
-sps = sps[which(table(tmp$sp)>2)]
-sps = sps[sps!=" " & sps!="NI NI" & sps!="Manilkara ???" & sps!="Lecythis " & sps!="Manilkara " & sps!="Pouteria NI" & sps!="Pouteria " & sps!="Pouteria sp."]
-sps
-
-for(i in sps){
-  tmp2 = subset(tmp,sp==i)
-  mod2 = sma(log(tmp2$LUEc)~log(tmp2$LIEc))
-  abline(mod2,col=grey(.5,.5))
-  }
-abline(mod,lwd=2)
-
-
-# Next step is to consider CII and height into the light interception equation: light = crown area * light * mean crown height * crown illumination index
-
 ```
+
 
 # Diagnostic plots
 ```{r}

@@ -38,12 +38,13 @@ summary(mod5)
 plot(mm$HGE,mm$tL,xlab="Height gain efficiency (cm g^-1)",ylab="Light intercepted (% m^2)",main="",xlim=c(0,5))
 plot(mm$HGE,mm$RcPos,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
 plot(mm$HGE,mm$rgrBc,xlab="Height gain efficiency (cm g^-1)",ylab="Relative crown position (%)",main="",xlim=c(0,5))
+
 plot(log(mm$LIEc),log(mm$LUEc),xlab="log(LIE)",ylab="log(LUE)")
 mod6 = lm(log(mm$LUEc)~log(mm$LIEc))
 summary(mod6)
 text(1,7.5,expression(paste(R^2,"= 0.52***")),col=2)
 abline(mod6,col=2)
-
+subset(mm,LUEc>exp(6))
 
 
 #plot(mm[,-1])
@@ -76,7 +77,6 @@ summary(mod) # without outlier
 abline(mod,col=2)
 text(9,4,expression(paste(R^2," = 0.04*")),col=2)
 
-
 # Hmax x LIE
 plot(mm$Hmax,mm$LIEc,xlab="Hmax",ylab="LIE")
 mod = lm(mm$LIEc~mm$Hmax)
@@ -85,8 +85,8 @@ abline(mod,col=2)
 text(30,170,expression(paste(R^2," = 0.06*")),col=2)
 
 # Hmax x LUE
-plot(mm$Hmax[-c(1,2,55,84,101,104)],mm$LUEc[-c(1,2,55,84,101,104)],xlab="Hmax",ylab="LUE")
-mod = lm(mm$LUEc[-c(1,2,55,84,101,104)]~mm$Hmax[-c(1,2,55,84,101,104)])
+plot(subset(mm,LUEc<100 & LUEc>-50,select=c("Hmax","LUEc")),xlab="Hmax",ylab="LUE")
+mod = lm(subset(mm,LUEc<100 & LUEc>-50,select="LUEc",drop=T)~subset(mm,LUEc<100 & LUEc>-50,select="Hmax",drop=T))
 summary(mod)
 #plot(mod)
 
@@ -129,7 +129,7 @@ plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log H
 hb = lm(log(tmp$cmax)~log(tmp$bM1c))
 abline(hb,col=2)
 summary(hb)
-text(-1.7,1.8,expression(paste(R^2,"=0.38***")),col=2)
+text(-1.7,1.8,expression(paste(R^2,"=0.57***")),col=2)
 
 # LIE
 plot(y=tmp$tL,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Estimated light interception")
@@ -137,7 +137,7 @@ plot(y=log(tmp$tL),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Est
 lb = lm(log(tmp$tL)~log(tmp$bM1c))
 abline(lb,col=2)
 summary(lb)
-text(-1.7,5.5,expression(paste(R^2,"=0.28***")),col=2)
+text(-1.7,5.5,expression(paste(R^2,"=0.34***")),col=2)
 
 # HGE x LIE
 plot(x=hb$residuals,lb$residuals,xlab="HGE",ylab="LIE")
@@ -151,7 +151,7 @@ plot(x=log(tmp$tL),log(tmp$rgrBc),ylab="log RGR",xlab="log Estimated light inter
 gl = lm(log(tmp$rgrBc)~log(tmp$tL))
 abline(gl,col=2)
 summary(gl)
-text(1.4,-1,expression(paste(R^2,"=0.07***")),col=2)
+text(1.4,-1,expression(paste(R^2,"=0.10***")),col=2)
 
 # LIExLUE
 plot(lb$residuals,y=gl$residuals,xlab="light-biomass residuals",ylab="growth-light residuals")
@@ -172,21 +172,23 @@ summary(lm(hb2$residuals~tmp2$Hmax))
 
 plot(tmp2$Hmax,lb2$residuals,xlab="Hmax",ylab="LIE")
 summary(lm(lb2$residuals~tmp2$Hmax))
-text(33,1.2,expression(paste(R^2," = 0.04")),col=2)
-abline(lm(lb2$residuals~tmp2$Hmax),col=2)
 
 plot(tmp2$Hmax,gl2$residuals,xlab="Hmax",ylab="LUE")
 summary(lm(gl2$residuals~tmp2$Hmax))
 
 
 # LUE x LIE - Permutation test
+tmp = subset(mm,bM1c-bM0c>0 & !is.na(tL))
+nrow(tmp)
 obs = cor(log((tmp$bM1c-tmp$bM0c)/tmp$tL),log(tmp$tL/tmp$bM1c))
 cor.test(log((tmp$bM1c-tmp$bM0c)/tmp$tL),log(tmp$tL/tmp$bM1c))
 
 res = numeric()
 for(i in 1:9999){
   tmptL = sample(tmp$tL)
-  res[i] = cor(log((tmp$bM1c-tmp$bM0c)/tmptL),log(tmptL/tmp$bM1c))
+  tmpDb = sample(tmp$bM1c-tmp$bM0c)
+  tmpB1 = sample(tmp$bM1c)
+  res[i] = cor(log((tmpDb)/tmptL),log(tmptL/tmpB1))
   }
 res = c(res,obs)
 pp = sum(res<obs)/10000
@@ -198,11 +200,30 @@ legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
 
 # LUE x LIE - SMA
+library(smatr)
+library(plotrix)
+source("regr.plot.R")
+tmp = subset(mm,!is.na(LUEc) & LUEc>0 & LUEc<300)
+mod = sma(log(tmp$LIEc)~log(tmp$LUEc))
+regr.plot(mod)
+cols = topo.colors(40,alpha=.7)[round(tmp$Hmax)]
 
+plot(log(tmp$LIEc),log(tmp$LUEc),xlab="log(LIE)",ylab="log(LUE)",col=cols,pch=16)
+legend(x="topright",legend=seq(5,35,5),col=topo.colors(40,alpha=.7)[seq(5,35,5)],bty="n",pch=16)
 
 
 # LUE x LIE - PCA
+pca = prcomp(log(tmp[,c("LUEc","LIEc")]),scale.=T)
+summary(pca)
+ss = predict(pca)
+plot(ss[,1],ss[,2]);abline(v=0,h=0,lty=3,col="grey")
+#text(c("LIE","LUE"),x=pca$rotation[,1],y=pca$rotation[,2])
 
+plot(ss[,1]~tmp$Hmax,ylim=c(-2.5,2),xlab="Hmax",ylab="PC1")
+mod = lm(ss[,1]~tmp$Hmax)
+summary(mod)
+abline(mod,col=2)
+text(30,2,expression(paste(R^2,"=0.05*")),col=2)
 
 ```
 
