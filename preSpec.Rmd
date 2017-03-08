@@ -201,15 +201,34 @@ legend(x="topright",c("R","=",round(obs,2),"","p","=",pp),bty="n",text.col=2)
 
 # LUE x LIE - SMA
 library(smatr)
-library(plotrix)
 source("regr.plot.R")
 tmp = subset(mm,!is.na(LUEc) & LUEc>0 & LUEc<300)
+nrow(tmp)
 mod = sma(log(tmp$LIEc)~log(tmp$LUEc))
 regr.plot(mod)
 cols = topo.colors(40,alpha=.7)[round(tmp$Hmax)]
 
 plot(log(tmp$LIEc),log(tmp$LUEc),xlab="log(LIE)",ylab="log(LUE)",col=cols,pch=16)
 legend(x="topright",legend=seq(5,35,5),col=topo.colors(40,alpha=.7)[seq(5,35,5)],bty="n",pch=16)
+
+# Plot residuals from SMA against plot abundances
+maxsizes = read.csv("maxsizes.csv",header=T)
+maxsizes$sp = paste(maxsizes$Genus,maxsizes$epithet)
+head(maxsizes)
+
+tmp2 = subset(tmp,sp%in%maxsizes$sp)
+nrow(tmp2)
+row.names(maxsizes) = maxsizes$sp
+tmp2$n = maxsizes[tmp2$sp,"n"]
+tmp2 = tmp2[-16,]
+head(tmp2)
+mod2 = sma(log(tmp2$LIEc)~log(tmp2$LUEc))
+regr.plot(mod2)
+plot(residuals(mod2),y=log(tmp2$n),xlab="SMA residuals",ylab="Plot abundance")
+mod3 = lm(log(tmp2$n)~residuals(mod2))
+summary(mod3)
+abline(mod3,col=2)
+text(.5,2,expression(paste(R^2,"=0.05*")),col=2)
 
 
 # LUE x LIE - PCA
@@ -224,6 +243,7 @@ mod = lm(ss[,1]~tmp$Hmax)
 summary(mod)
 abline(mod,col=2)
 text(30,2,expression(paste(R^2,"=0.05*")),col=2)
+
 
 ```
 
