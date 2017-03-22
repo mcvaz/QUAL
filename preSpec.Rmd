@@ -47,6 +47,12 @@ abline(mod6,col=2)
 subset(mm,LUEc>exp(6))
 
 
+plot(x=log(mm$LIEc),log(mm$HGE),xlab="log(LIE)",ylab="log(HGE)")
+mod = lm(log(mm$HGE)~log(mm$LIEc))
+summary(mod)
+abline(mod,col=2)
+text("R^2=0.03*",col=2,y=1.5,x=1)
+
 #plot(mm[,-1])
 
 ```
@@ -123,6 +129,10 @@ tmp$cmax = tmp$cmax/100+1.4
 tmp = na.omit(tmp)
 tmp = tmp[which(tmp$rgrBc>=0),]
 
+
+# HGE x LIE
+#???
+
 # HGE
 plot(y=tmp$cmax,tmp$bM1c,xlab="Estimated biomass (kg)",ylab="Height (m)")
 plot(y=log(tmp$cmax),log(tmp$bM1c),xlab="log Estimated biomass (kg)",ylab="log Height (m)")
@@ -186,8 +196,8 @@ cor.test(log((tmp$bM1c-tmp$bM0c)/tmp$tL),log(tmp$tL/tmp$bM1c))
 res = numeric()
 for(i in 1:9999){
   tmptL = sample(tmp$tL)
-  tmpDb = sample(tmp$bM1c-tmp$bM0c)
-  tmpB1 = sample(tmp$bM1c)
+  #tmpDb = sample(tmp$bM1c-tmp$bM0c)
+  #tmpB1 = sample(tmp$bM1c)
   res[i] = cor(log((tmpDb)/tmptL),log(tmptL/tmpB1))
   }
 res = c(res,obs)
@@ -209,7 +219,9 @@ regr.plot(mod)
 cols = topo.colors(40,alpha=.7)[round(tmp$Hmax)]
 
 plot(log(tmp$LIEc),log(tmp$LUEc),xlab="log(LIE)",ylab="log(LUE)",col=cols,pch=16)
-legend(x="topright",legend=seq(5,35,5),col=topo.colors(40,alpha=.7)[seq(5,35,5)],bty="n",pch=16)
+legend(x="topright",legend=seq(5,35,5),col=topo.colors(40,alpha=.7)[seq(5,35,5)],bty="n",pch=16,title="Adult height (m)")
+abline(mod,col="grey")
+text(2.5,1.25,expression(paste(R^2," = 0.70***")),col=2)
 
 # Plot residuals from SMA against plot abundances
 maxsizes = read.csv("maxsizes.csv",header=T)
